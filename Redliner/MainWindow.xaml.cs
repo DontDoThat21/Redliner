@@ -42,6 +42,9 @@ public partial class MainWindow : Window
         viewModel.ZoomInRequested += () => ZoomIn();
         viewModel.ZoomOutRequested += () => ZoomOut();
         viewModel.FitToWindowRequested += () => FitToWindow();
+
+        // Store ViewModel reference for cleanup
+        _viewModel = viewModel;
     }
 
     private void DocumentViewer_PreviewMouseWheel(object sender, MouseWheelEventArgs e)
