@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using GalaSoft.MvvmLight.Command;
 using System.Windows.Input;
 
 namespace Redliner.ViewModels;

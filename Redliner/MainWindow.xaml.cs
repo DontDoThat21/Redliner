@@ -18,6 +18,7 @@ public partial class MainWindow : Window
     private const double ZoomIncrement = 0.1;
     private const double MinZoom = 0.1;
     private const double MaxZoom = 5.0;
+    private MainViewModel? _viewModel;
 
     public MainWindow()
     {
