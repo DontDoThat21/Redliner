@@ -21,6 +21,11 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private string? currentFilePath;
 
+    // Event to communicate with the View for zoom operations
+    public event Action? ZoomInRequested;
+    public event Action? ZoomOutRequested;
+    public event Action? FitToWindowRequested;
+
     [RelayCommand]
     private async Task OpenFileAsync()
     {
@@ -37,6 +42,27 @@ public partial class MainViewModel : ViewModelBase
         StatusText = "Saving file...";
         await Task.Delay(100); // Placeholder
         StatusText = "Ready";
+    }
+
+    [RelayCommand]
+    private void ZoomIn()
+    {
+        ZoomInRequested?.Invoke();
+        StatusText = "Zoomed in";
+    }
+
+    [RelayCommand]
+    private void ZoomOut()
+    {
+        ZoomOutRequested?.Invoke();
+        StatusText = "Zoomed out";
+    }
+
+    [RelayCommand]
+    private void FitToWindow()
+    {
+        FitToWindowRequested?.Invoke();
+        StatusText = "Fit to window";
     }
 
     [RelayCommand]
