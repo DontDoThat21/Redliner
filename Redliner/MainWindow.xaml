@@ -4,9 +4,132 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:Redliner"
+        xmlns:converters="clr-namespace:Redliner.Converters"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="{Binding Title}" Height="600" Width="900"
+        WindowStartupLocation="CenterScreen">
+    
+    <Window.Resources>
+        <converters:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter"/>
+    </Window.Resources>
+    
     <Grid>
-
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- Menu Bar -->
+        <Menu Grid.Row="0">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open" Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O"/>
+                <MenuItem Header="_Save" Command="{Binding SaveFileCommand}" InputGestureText="Ctrl+S"/>
+                <Separator/>
+                <MenuItem Header="E_xit" Command="{Binding ExitCommand}" InputGestureText="Alt+F4"/>
+            </MenuItem>
+            <MenuItem Header="_Edit">
+                <MenuItem Header="_Undo" InputGestureText="Ctrl+Z"/>
+                <MenuItem Header="_Redo" InputGestureText="Ctrl+Y"/>
+            </MenuItem>
+            <MenuItem Header="_Annotations">
+                <MenuItem Header="Add _Text" InputGestureText="T"/>
+                <MenuItem Header="Add _Rectangle" InputGestureText="R"/>
+                <MenuItem Header="Add _Circle" InputGestureText="C"/>
+                <MenuItem Header="Add _Arrow" InputGestureText="A"/>
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="_Zoom In" InputGestureText="Ctrl++"/>
+                <MenuItem Header="Zoom _Out" InputGestureText="Ctrl+-"/>
+                <MenuItem Header="_Fit to Window" InputGestureText="Ctrl+0"/>
+            </MenuItem>
+        </Menu>
+        
+        <!-- Toolbar -->
+        <ToolBar Grid.Row="1">
+            <Button Content="Open" Command="{Binding OpenFileCommand}" ToolTip="Open File (Ctrl+O)"/>
+            <Button Content="Save" Command="{Binding SaveFileCommand}" ToolTip="Save File (Ctrl+S)"/>
+            <Separator/>
+            <Button Content="Text" ToolTip="Add Text Annotation (T)"/>
+            <Button Content="Rectangle" ToolTip="Add Rectangle Annotation (R)"/>
+            <Button Content="Circle" ToolTip="Add Circle Annotation (C)"/>
+            <Button Content="Arrow" ToolTip="Add Arrow Annotation (A)"/>
+            <Separator/>
+            <Button Content="Zoom In" ToolTip="Zoom In (Ctrl++)"/>
+            <Button Content="Zoom Out" ToolTip="Zoom Out (Ctrl+-)"/>
+            <Button Content="Fit" ToolTip="Fit to Window (Ctrl+0)"/>
+        </ToolBar>
+        
+        <!-- Main Content Area -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="200"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="5"/>
+                <ColumnDefinition Width="200"/>
+            </Grid.ColumnDefinitions>
+            
+            <!-- Left Panel - Document Tree -->
+            <GroupBox Grid.Column="0" Header="Documents">
+                <TreeView>
+                    <TreeViewItem Header="Recent Documents" IsExpanded="True">
+                        <!-- TODO: Bind to recent documents -->
+                    </TreeViewItem>
+                </TreeView>
+            </GroupBox>
+            
+            <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch"/>
+            
+            <!-- Main Viewer Area -->
+            <Border Grid.Column="2" Background="LightGray" BorderBrush="Gray" BorderThickness="1">
+                <ScrollViewer x:Name="DocumentViewer" ZoomMode="Enabled" PanMode="Both">
+                    <Canvas x:Name="DocumentCanvas" Background="White">
+                        <!-- Document content and annotations will be rendered here -->
+                        <TextBlock Text="Open a document to begin annotation"
+                                 HorizontalAlignment="Center"
+                                 VerticalAlignment="Center"
+                                 FontSize="16"
+                                 Foreground="Gray"
+                                 Visibility="{Binding IsFileLoaded, Converter={StaticResource InvertedBooleanToVisibilityConverter}}"/>
+                    </Canvas>
+                </ScrollViewer>
+            </Border>
+            
+            <GridSplitter Grid.Column="3" HorizontalAlignment="Stretch"/>
+            
+            <!-- Right Panel - Annotation Properties -->
+            <GroupBox Grid.Column="4" Header="Annotation Properties">
+                <StackPanel>
+                    <Label Content="Layer:"/>
+                    <ComboBox x:Name="LayerComboBox">
+                        <ComboBoxItem Content="Default"/>
+                        <ComboBoxItem Content="Redlines"/>
+                        <ComboBoxItem Content="Notes"/>
+                        <ComboBoxItem Content="Markup"/>
+                    </ComboBox>
+                    
+                    <Label Content="Color:"/>
+                    <Button x:Name="ColorButton" Width="50" Height="25" Background="Red"/>
+                    
+                    <Label Content="Stroke Thickness:"/>
+                    <Slider x:Name="StrokeThicknessSlider" Minimum="1" Maximum="10" Value="2"/>
+                    
+                    <Label Content="Text Size:"/>
+                    <Slider x:Name="TextSizeSlider" Minimum="8" Maximum="72" Value="12"/>
+                </StackPanel>
+            </GroupBox>
+        </Grid>
+        
+        <!-- Status Bar -->
+        <StatusBar Grid.Row="3">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusText}"/>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock Text="{Binding CurrentFilePath}"/>
+            </StatusBarItem>
+        </StatusBar>
     </Grid>
 </Window>
