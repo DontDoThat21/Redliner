@@ -50,6 +50,10 @@
               "target": "Package",
               "version": "[8.0.0, )"
             },
+            "MvvmLightLibs": {
+              "target": "Package",
+              "version": "[5.4.1.1, )"
+            },
             "PdfSharp": {
               "target": "Package",
               "version": "[6.0.0, )"
