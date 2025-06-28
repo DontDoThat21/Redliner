@@ -21,7 +21,8 @@ public enum FileType
 {
     PDF,
     DXF,
-    DWG
+    DWG,
+    DWF
 }
 
 /// <summary>

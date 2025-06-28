@@ -48,7 +48,7 @@ public class FileService : IFileService
             return false;
 
         var extension = Path.GetExtension(filePath).ToLowerInvariant();
-        return extension is ".pdf" or ".dxf" or ".dwg";
+        return extension is ".pdf" or ".dxf" or ".dwg" or ".dwf";
     }
 
     public string GetFileType(string filePath)
