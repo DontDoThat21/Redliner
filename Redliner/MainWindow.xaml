@@ -40,9 +40,9 @@
                 <MenuItem Header="Add _Arrow" InputGestureText="A"/>
             </MenuItem>
             <MenuItem Header="_View">
-                <MenuItem Header="_Zoom In" InputGestureText="Ctrl++"/>
-                <MenuItem Header="Zoom _Out" InputGestureText="Ctrl+-"/>
-                <MenuItem Header="_Fit to Window" InputGestureText="Ctrl+0"/>
+                <MenuItem Header="_Zoom In" Command="{Binding ZoomInCommand}" InputGestureText="Ctrl++"/>
+                <MenuItem Header="Zoom _Out" Command="{Binding ZoomOutCommand}" InputGestureText="Ctrl+-"/>
+                <MenuItem Header="_Fit to Window" Command="{Binding FitToWindowCommand}" InputGestureText="Ctrl+0"/>
             </MenuItem>
         </Menu>
         
@@ -56,9 +56,9 @@
             <Button Content="Circle" ToolTip="Add Circle Annotation (C)"/>
             <Button Content="Arrow" ToolTip="Add Arrow Annotation (A)"/>
             <Separator/>
-            <Button Content="Zoom In" ToolTip="Zoom In (Ctrl++)"/>
-            <Button Content="Zoom Out" ToolTip="Zoom Out (Ctrl+-)"/>
-            <Button Content="Fit" ToolTip="Fit to Window (Ctrl+0)"/>
+            <Button Content="Zoom In" Command="{Binding ZoomInCommand}" ToolTip="Zoom In (Ctrl++)"/>
+            <Button Content="Zoom Out" Command="{Binding ZoomOutCommand}" ToolTip="Zoom Out (Ctrl+-)"/>
+            <Button Content="Fit" Command="{Binding FitToWindowCommand}" ToolTip="Fit to Window (Ctrl+0)"/>
         </ToolBar>
         
         <!-- Main Content Area -->
@@ -84,16 +84,23 @@
             
             <!-- Main Viewer Area -->
             <Border Grid.Column="2" Background="LightGray" BorderBrush="Gray" BorderThickness="1">
-                <ScrollViewer x:Name="DocumentViewer" ZoomMode="Enabled" PanMode="Both">
-                    <Canvas x:Name="DocumentCanvas" Background="White">
-                        <!-- Document content and annotations will be rendered here -->
-                        <TextBlock Text="Open a document to begin annotation"
-                                 HorizontalAlignment="Center"
-                                 VerticalAlignment="Center"
-                                 FontSize="16"
-                                 Foreground="Gray"
-                                 Visibility="{Binding IsFileLoaded, Converter={StaticResource InvertedBooleanToVisibilityConverter}}"/>
-                    </Canvas>
+                <ScrollViewer x:Name="DocumentViewer" 
+                              HorizontalScrollBarVisibility="Auto" 
+                              VerticalScrollBarVisibility="Auto"
+                              CanContentScroll="True">
+                    <Viewbox x:Name="DocumentViewbox" Stretch="Uniform">
+                        <Canvas x:Name="DocumentCanvas" Background="White" 
+                                Width="{Binding ActualWidth, ElementName=DocumentViewbox}" 
+                                Height="{Binding ActualHeight, ElementName=DocumentViewbox}">
+                            <!-- Document content and annotations will be rendered here -->
+                            <TextBlock Text="Open a document to begin annotation"
+                                     Canvas.Left="300"
+                                     Canvas.Top="280"
+                                     FontSize="16"
+                                     Foreground="Gray"
+                                     Visibility="{Binding IsFileLoaded, Converter={StaticResource InvertedBooleanToVisibilityConverter}}"/>
+                        </Canvas>
+                    </Viewbox>
                 </ScrollViewer>
             </Border>
             
