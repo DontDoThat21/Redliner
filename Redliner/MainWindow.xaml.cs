@@ -1,13 +1,8 @@
-﻿using System.Text;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
+﻿using System.Windows;
+using Redliner.ViewModels;
+using Redliner.Data;
+using Redliner.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace Redliner;
 
@@ -19,5 +14,17 @@ public partial class MainWindow : Window
     public MainWindow()
     {
         InitializeComponent();
+        InitializeAsync();
+    }
+
+    private async void InitializeAsync()
+    {
+        // Initialize database
+        using var context = new RedlinerDbContext();
+        await context.Database.EnsureCreatedAsync();
+
+        // Set up ViewModel
+        var viewModel = new MainViewModel();
+        DataContext = viewModel;
     }
 }
