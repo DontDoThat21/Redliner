@@ -89,7 +89,9 @@
                               VerticalScrollBarVisibility="Auto"
                               CanContentScroll="True">
                     <Viewbox x:Name="DocumentViewbox" Stretch="Uniform">
-                        <Canvas x:Name="DocumentCanvas" Background="White" Width="800" Height="600">
+                        <Canvas x:Name="DocumentCanvas" Background="White" 
+                                Width="{Binding ActualWidth, ElementName=DocumentViewbox}" 
+                                Height="{Binding ActualHeight, ElementName=DocumentViewbox}">
                             <!-- Document content and annotations will be rendered here -->
                             <TextBlock Text="Open a document to begin annotation"
                                      Canvas.Left="300"
