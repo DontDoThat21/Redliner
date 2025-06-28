@@ -317,3 +317,78 @@ MigrationBackup/
 
 # Ionide (cross platform F# VS Code tools) working folder
 .ionide/
+
+# JetBrains Rider
+*.sln.iml
+.idea/
+*.DotSettings.user
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Folder config file
+Desktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# VS Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Temporary files
+*.swp
+*.swo
+*~
+
+# User-specific files (MonoDevelop/Xamarin Studio)
+*.userprefs
+
+# Auto generated proxy classes
+*_proxy.cs
+
+# NuGet Packages
+*.nupkg
+# NuGet Symbol Packages
+*.snupkg
+# The packages folder can be ignored because of Package Restore
+**/[Pp]ackages/*
+# except build/, which is used as an MSBuild target.
+!**/[Pp]ackages/build/
+# Uncomment if necessary however generally it will be regenerated when needed
+#!**/[Pp]ackages/repositories.config
+# NuGet v3's project.json files produces more ignorable files
+*.nuget.props
+*.nuget.targets
+
+# Microsoft Azure Build Output
+csx/
+*.build.csdef
+
+# Microsoft Azure Emulator
+ecf/
+rcf/
+
+# Windows Azure Build Output
+csx
+*.build.csdef
+
+# Windows Azure Emulator
+ecf
+rcf
+
+# Directory.Build.props and Directory.Build.targets
+# These are MSBuild files and should not be ignored if they are present at the repo level
+# but can be ignored if they are auto-generated in subdirectories
+# Uncomment the next lines if you want to ignore auto-generated ones
+#**/Directory.Build.props
+#**/Directory.Build.targets

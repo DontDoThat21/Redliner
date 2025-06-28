@@ -87,7 +87,9 @@
                 <ScrollViewer x:Name="DocumentViewer" 
                               HorizontalScrollBarVisibility="Auto" 
                               VerticalScrollBarVisibility="Auto"
-                              CanContentScroll="True">
+                              CanContentScroll="True"
+                              PanningMode="Both"
+                              ZoomMode="Enabled">
                     <Viewbox x:Name="DocumentViewbox" Stretch="Uniform">
                         <Canvas x:Name="DocumentCanvas" Background="White" 
                                 Width="{Binding ActualWidth, ElementName=DocumentViewbox}" 
