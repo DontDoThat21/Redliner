@@ -88,8 +88,7 @@
                               HorizontalScrollBarVisibility="Auto" 
                               VerticalScrollBarVisibility="Auto"
                               CanContentScroll="True"
-                              PanningMode="Both"
-                              ZoomMode="Enabled">
+                              PanningMode="Both">
                     <Viewbox x:Name="DocumentViewbox" Stretch="Uniform">
                         <Canvas x:Name="DocumentCanvas" Background="White" 
                                 Width="{Binding ActualWidth, ElementName=DocumentViewbox}" 
