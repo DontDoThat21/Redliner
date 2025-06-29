@@ -11,6 +11,32 @@
     
     <Window.Resources>
         <converters:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter"/>
+        <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        
+        <!-- Style for document tree items -->
+        <Style x:Key="DocumentTreeItemStyle" TargetType="TreeViewItem">
+            <Setter Property="IsExpanded" Value="True"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        
+        <!-- Template for recent document items -->
+        <HierarchicalDataTemplate x:Key="RecentDocumentTemplate">
+            <StackPanel Orientation="Horizontal" ToolTip="{Binding Tooltip}">
+                <TextBlock Text="📄" Margin="0,0,5,0" FontSize="12"/>
+                <TextBlock Text="{Binding DisplayName}" FontSize="11">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding FileExists}" Value="False">
+                                    <Setter Property="Foreground" Value="Gray"/>
+                                    <Setter Property="FontStyle" Value="Italic"/>
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </HierarchicalDataTemplate>
     </Window.Resources>
     
     <Grid>
@@ -73,36 +99,95 @@
             
             <!-- Left Panel - Document Tree -->
             <GroupBox Grid.Column="0" Header="Documents">
-                <TreeView>
-                    <TreeViewItem Header="Recent Documents" IsExpanded="True">
-                        <!-- TODO: Bind to recent documents -->
-                    </TreeViewItem>
-                </TreeView>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    
+                    <!-- Refresh button -->
+                    <Button Grid.Row="0" Content="🔄 Refresh" 
+                            Command="{Binding DocumentTree.RefreshDocumentsCommand}"
+                            Margin="2" Height="25" FontSize="10"
+                            ToolTip="Refresh recent documents list"/>
+                    
+                    <TreeView Grid.Row="1" x:Name="DocumentTreeView"
+                              ItemContainerStyle="{StaticResource DocumentTreeItemStyle}">
+                        <TreeViewItem Header="Recent Documents" IsExpanded="True">
+                            <TreeViewItem.ItemsSource>
+                                <Binding Path="DocumentTree.RecentDocuments"/>
+                            </TreeViewItem.ItemsSource>
+                            <TreeViewItem.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" ToolTip="{Binding Tooltip}">
+                                        <StackPanel.InputBindings>
+                                            <MouseBinding Gesture="LeftDoubleClick" Command="{Binding SelectDocumentCommand}"/>
+                                            <MouseBinding Gesture="RightClick" Command="{Binding OpenFileLocationCommand}"/>
+                                        </StackPanel.InputBindings>
+                                        <TextBlock Text="📄" Margin="0,0,5,0" FontSize="12"/>
+                                        <TextBlock Text="{Binding DisplayName}" FontSize="11">
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding FileExists}" Value="False">
+                                                            <Setter Property="Foreground" Value="Gray"/>
+                                                            <Setter Property="FontStyle" Value="Italic"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </TreeViewItem.ItemTemplate>
+                        </TreeViewItem>
+                    </TreeView>
+                </Grid>
             </GroupBox>
             
             <GridSplitter Grid.Column="1" HorizontalAlignment="Stretch"/>
             
             <!-- Main Viewer Area -->
             <Border Grid.Column="2" Background="LightGray" BorderBrush="Gray" BorderThickness="1">
-                <ScrollViewer x:Name="DocumentViewer" 
-                              HorizontalScrollBarVisibility="Auto" 
-                              VerticalScrollBarVisibility="Auto"
-                              CanContentScroll="True"
-                              PanningMode="Both">
-                    <Viewbox x:Name="DocumentViewbox" Stretch="Uniform">
-                        <Canvas x:Name="DocumentCanvas" Background="White" 
-                                Width="{Binding ActualWidth, ElementName=DocumentViewbox}" 
-                                Height="{Binding ActualHeight, ElementName=DocumentViewbox}">
-                            <!-- Document content and annotations will be rendered here -->
-                            <TextBlock Text="Open a document to begin annotation"
-                                     Canvas.Left="300"
-                                     Canvas.Top="280"
-                                     FontSize="16"
-                                     Foreground="Gray"
-                                     Visibility="{Binding IsFileLoaded, Converter={StaticResource InvertedBooleanToVisibilityConverter}}"/>
-                        </Canvas>
-                    </Viewbox>
-                </ScrollViewer>
+                <Grid>
+                    <!-- Document content -->
+                    <ScrollViewer x:Name="DocumentViewer" 
+                                  HorizontalScrollBarVisibility="Auto" 
+                                  VerticalScrollBarVisibility="Auto"
+                                  CanContentScroll="True"
+                                  PanningMode="Both"
+                                  Visibility="{Binding IsFileLoaded, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Viewbox x:Name="DocumentViewbox" Stretch="Uniform">
+                            <ContentPresenter Content="{Binding DocumentContent}" />
+                        </Viewbox>
+                    </ScrollViewer>
+                    
+                    <!-- Loading indicator -->
+                    <Grid Visibility="{Binding IsDocumentLoading, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid.Background>
+                            <SolidColorBrush Color="White" Opacity="0.8"/>
+                        </Grid.Background>
+                        <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock Text="🔄" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                            <TextBlock Text="Loading document..." FontSize="16" HorizontalAlignment="Center"/>
+                        </StackPanel>
+                    </Grid>
+                    
+                    <!-- No document message -->
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                                Visibility="{Binding IsFileLoaded, Converter={StaticResource InvertedBooleanToVisibilityConverter}}">
+                        <TextBlock Text="📄" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,10" Foreground="LightGray"/>
+                        <TextBlock Text="Open a document to begin annotation"
+                                   FontSize="16"
+                                   Foreground="Gray"
+                                   HorizontalAlignment="Center"/>
+                        <TextBlock Text="Supported formats: PDF, DWG, DXF, DWF"
+                                   FontSize="12"
+                                   Foreground="LightGray"
+                                   HorizontalAlignment="Center"
+                                   Margin="0,5,0,0"/>
+                    </StackPanel>
+                </Grid>
             </Border>
             
             <GridSplitter Grid.Column="3" HorizontalAlignment="Stretch"/>

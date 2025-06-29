@@ -1,10 +1,10 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using GalaSoft.MvvmLight.Command;
-using System.Windows.Input;
 using Microsoft.Win32;
 using System.IO;
+using System.Windows;
 using Redliner.Services;
+using Redliner.Data;
 
 namespace Redliner.ViewModels;
 
@@ -13,6 +13,9 @@ namespace Redliner.ViewModels;
 /// </summary>
 public partial class MainViewModel : ViewModelBase
 {
+    private readonly IDocumentService _documentService;
+    private readonly IDocumentViewerService _documentViewerService;
+
     [ObservableProperty]
     private string title = "Redliner - Engineering Annotator";
 
@@ -25,10 +28,41 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private string? currentFilePath;
 
+    [ObservableProperty]
+    private DocumentTreeViewModel documentTree;
+
+    [ObservableProperty]
+    private UIElement? documentContent;
+
+    [ObservableProperty]
+    private bool isDocumentLoading = false;
+
     // Event to communicate with the View for zoom operations
     public event Action? ZoomInRequested;
     public event Action? ZoomOutRequested;
     public event Action? FitToWindowRequested;
+
+    public MainViewModel()
+    {
+        _documentService = new DocumentService(new RedlinerDbContext());
+        _documentViewerService = new DocumentViewerService();
+        DocumentTree = new DocumentTreeViewModel(_documentService);
+        
+        // Subscribe to document tree events
+        DocumentTree.DocumentSelected += OnDocumentTreeItemSelected;
+    }
+
+    private async void OnDocumentTreeItemSelected(string filePath)
+    {
+        if (File.Exists(filePath))
+        {
+            await OpenDocumentAsync(filePath);
+        }
+        else
+        {
+            StatusText = "Selected file no longer exists.";
+        }
+    }
 
     [RelayCommand]
     private async Task OpenFileAsync()
@@ -45,31 +79,7 @@ public partial class MainViewModel : ViewModelBase
 
             if (openFileDialog.ShowDialog() == true)
             {
-                StatusText = $"Opening {Path.GetFileName(openFileDialog.FileName)}...";
-                
-                // Validate file type
-                var fileService = new FileService(new Data.RedlinerDbContext());
-                if (!fileService.IsValidFile(openFileDialog.FileName))
-                {
-                    StatusText = "Invalid file type. Please select a PDF, DWG, DWF, or DXF file.";
-                    return;
-                }
-
-                // Read the file
-                var fileData = await fileService.ReadFileAsync(openFileDialog.FileName);
-                if (fileData != null)
-                {
-                    CurrentFilePath = openFileDialog.FileName;
-                    IsFileLoaded = true;
-                    StatusText = $"Opened {Path.GetFileName(openFileDialog.FileName)}";
-                    
-                    // TODO: Load document content into viewer
-                    // This would involve parsing the file and displaying it in the DocumentCanvas
-                }
-                else
-                {
-                    StatusText = "Failed to read file.";
-                }
+                await OpenDocumentAsync(openFileDialog.FileName);
             }
             else
             {
@@ -79,6 +89,64 @@ public partial class MainViewModel : ViewModelBase
         catch (Exception ex)
         {
             StatusText = $"Error opening file: {ex.Message}";
+        }
+    }
+
+    private async Task OpenDocumentAsync(string filePath)
+    {
+        try
+        {
+            IsDocumentLoading = true;
+            StatusText = $"Opening {Path.GetFileName(filePath)}...";
+            
+            // Validate file type
+            if (!_documentService.IsValidFileType(filePath))
+            {
+                StatusText = "Invalid file type. Please select a PDF, DWG, DWF, or DXF file.";
+                return;
+            }
+
+            // Add/update document in database
+            var document = await _documentService.OpenDocumentAsync(filePath);
+            if (document != null)
+            {
+                CurrentFilePath = filePath;
+                
+                // Update the document tree
+                await DocumentTree.AddRecentDocumentAsync(filePath);
+                
+                // Load document content into viewer
+                StatusText = $"Rendering {Path.GetFileName(filePath)}...";
+                DocumentContent = await _documentViewerService.LoadDocumentAsync(filePath);
+                
+                if (DocumentContent != null)
+                {
+                    IsFileLoaded = true;
+                    StatusText = $"Opened {Path.GetFileName(filePath)}";
+                }
+                else
+                {
+                    StatusText = "Failed to render document content.";
+                    IsFileLoaded = false;
+                    DocumentContent = null;
+                }
+            }
+            else
+            {
+                StatusText = "Failed to open document.";
+                IsFileLoaded = false;
+                DocumentContent = null;
+            }
+        }
+        catch (Exception ex)
+        {
+            StatusText = $"Error opening document: {ex.Message}";
+            IsFileLoaded = false;
+            DocumentContent = null;
+        }
+        finally
+        {
+            IsDocumentLoading = false;
         }
     }
 
@@ -181,7 +249,6 @@ public partial class MainViewModel : ViewModelBase
     [RelayCommand]
     private void Exit()
     {
-        // TODO: Implement exit logic
         System.Windows.Application.Current.Shutdown();
     }
 }
