@@ -173,11 +173,15 @@ public partial class MainViewModel : ViewModelBase
     {
         try
         {
+            System.Diagnostics.Debug.WriteLine($"Loading annotations for document ID: {documentId}");
             var annotations = await _annotationService.GetDocumentAnnotationsAsync(documentId);
+            System.Diagnostics.Debug.WriteLine($"Found {annotations.Count()} annotations");
+            
             CurrentAnnotations.Clear();
             foreach (var annotation in annotations)
             {
                 CurrentAnnotations.Add(annotation);
+                System.Diagnostics.Debug.WriteLine($"- {annotation.Type} at ({annotation.X}, {annotation.Y}) - {annotation.Color}");
             }
             
             // Notify the view to update annotation display
@@ -186,6 +190,22 @@ public partial class MainViewModel : ViewModelBase
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Error loading annotations: {ex.Message}");
+        }
+    }
+
+    public async Task SaveAnnotationAsync(Annotation annotation)
+    {
+        try
+        {
+            var savedAnnotation = await _annotationService.CreateAnnotationAsync(annotation);
+            CurrentAnnotations.Add(savedAnnotation);
+            
+            // Notify the view to update annotation display
+            AnnotationsUpdated?.Invoke(CurrentAnnotations);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error saving annotation: {ex.Message}");
         }
     }
 

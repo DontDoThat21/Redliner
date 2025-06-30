@@ -46,6 +46,10 @@ public partial class MainWindow : Window
         // Initialize database
         using var context = new RedlinerDbContext();
         await context.Database.EnsureCreatedAsync();
+        
+        // Seed test data
+        var seeder = new DatabaseSeeder(context);
+        await seeder.SeedTestDataAsync();
 
         // Set up ViewModel
         var viewModel = new MainViewModel();
@@ -170,18 +174,32 @@ public partial class MainWindow : Window
             rect.StrokeThickness = 2;
             rect.Fill = new SolidColorBrush(Color.FromArgb(30, 255, 0, 0));
             
-            // TODO: Save annotation to database
-            // var annotation = new Models.Annotation
-            // {
-            //     Type = "Rectangle",
-            //     X = Canvas.GetLeft(rect),
-            //     Y = Canvas.GetTop(rect),
-            //     Width = rect.Width,
-            //     Height = rect.Height,
-            //     Color = "#FF0000",
-            //     StrokeThickness = 2.0
-            // };
-            // await _viewModel.SaveAnnotationAsync(annotation);
+            // Save annotation to database
+            if (_viewModel != null && _viewModel.CurrentDocumentId > 0)
+            {
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await _viewModel.SaveAnnotationAsync(new Models.Annotation
+                        {
+                            DocumentId = _viewModel.CurrentDocumentId,
+                            Type = "Rectangle",
+                            X = Canvas.GetLeft(rect),
+                            Y = Canvas.GetTop(rect),
+                            Width = rect.Width,
+                            Height = rect.Height,
+                            Color = "#FF0000",
+                            StrokeThickness = 2.0,
+                            Layer = "Default"
+                        });
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Error saving annotation: {ex.Message}");
+                    }
+                });
+            }
         }
         else
         {
@@ -198,20 +216,25 @@ public partial class MainWindow : Window
         // Render annotations on the canvas
         Dispatcher.Invoke(() =>
         {
+            System.Diagnostics.Debug.WriteLine($"Rendering {annotations.Count()} annotations on canvas");
+            
             // Ensure canvas size matches document content
             if (DocumentPresenter.ActualWidth > 0 && DocumentPresenter.ActualHeight > 0)
             {
                 AnnotationCanvas.Width = DocumentPresenter.ActualWidth;
                 AnnotationCanvas.Height = DocumentPresenter.ActualHeight;
+                System.Diagnostics.Debug.WriteLine($"Canvas size set to {AnnotationCanvas.Width}x{AnnotationCanvas.Height}");
             }
             else
             {
                 // Set default size or wait for layout update
                 AnnotationCanvas.Width = 800;
                 AnnotationCanvas.Height = 600;
+                System.Diagnostics.Debug.WriteLine("Canvas size set to default 800x600");
             }
             
             _annotationRenderer.RenderAnnotations(AnnotationCanvas, annotations);
+            System.Diagnostics.Debug.WriteLine($"Canvas now has {AnnotationCanvas.Children.Count} child elements");
         });
     }
 
