@@ -3,8 +3,10 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.Win32;
 using System.IO;
 using System.Windows;
+using System.Collections.ObjectModel;
 using Redliner.Services;
 using Redliner.Data;
+using Redliner.Models;
 
 namespace Redliner.ViewModels;
 
@@ -15,6 +17,7 @@ public partial class MainViewModel : ViewModelBase
 {
     private readonly IDocumentService _documentService;
     private readonly IDocumentViewerService _documentViewerService;
+    private readonly IAnnotationService _annotationService;
 
     [ObservableProperty]
     private string title = "Redliner - Engineering Annotator";
@@ -37,15 +40,26 @@ public partial class MainViewModel : ViewModelBase
     [ObservableProperty]
     private bool isDocumentLoading = false;
 
+    [ObservableProperty]
+    private ObservableCollection<Annotation> currentAnnotations = new();
+
+    [ObservableProperty]
+    private int currentDocumentId = 0;
+
     // Event to communicate with the View for zoom operations
     public event Action? ZoomInRequested;
     public event Action? ZoomOutRequested;
     public event Action? FitToWindowRequested;
+    
+    // Event to communicate annotation updates to the View
+    public event Action<IEnumerable<Annotation>>? AnnotationsUpdated;
 
     public MainViewModel()
     {
-        _documentService = new DocumentService(new RedlinerDbContext());
+        var context = new RedlinerDbContext();
+        _documentService = new DocumentService(context);
         _documentViewerService = new DocumentViewerService();
+        _annotationService = new AnnotationService(context);
         DocumentTree = new DocumentTreeViewModel(_documentService);
         
         // Subscribe to document tree events
@@ -122,6 +136,11 @@ public partial class MainViewModel : ViewModelBase
                 if (DocumentContent != null)
                 {
                     IsFileLoaded = true;
+                    CurrentDocumentId = document.Id;
+                    
+                    // Load annotations for this document
+                    await LoadDocumentAnnotationsAsync(document.Id);
+                    
                     StatusText = $"Opened {Path.GetFileName(filePath)}";
                 }
                 else
@@ -147,6 +166,26 @@ public partial class MainViewModel : ViewModelBase
         finally
         {
             IsDocumentLoading = false;
+        }
+    }
+
+    private async Task LoadDocumentAnnotationsAsync(int documentId)
+    {
+        try
+        {
+            var annotations = await _annotationService.GetDocumentAnnotationsAsync(documentId);
+            CurrentAnnotations.Clear();
+            foreach (var annotation in annotations)
+            {
+                CurrentAnnotations.Add(annotation);
+            }
+            
+            // Notify the view to update annotation display
+            AnnotationsUpdated?.Invoke(CurrentAnnotations);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Error loading annotations: {ex.Message}");
         }
     }
 

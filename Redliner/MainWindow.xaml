@@ -158,7 +158,17 @@
                                   PanningMode="Both"
                                   Visibility="{Binding IsFileLoaded, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Viewbox x:Name="DocumentViewbox" Stretch="Uniform">
-                            <ContentPresenter Content="{Binding DocumentContent}" />
+                            <Grid x:Name="DocumentContainer">
+                                <!-- Document base content -->
+                                <ContentPresenter x:Name="DocumentPresenter" Content="{Binding DocumentContent}" />
+                                <!-- Annotation overlay canvas -->
+                                <Canvas x:Name="AnnotationCanvas" 
+                                        Background="Transparent"
+                                        MouseLeftButtonDown="AnnotationCanvas_MouseLeftButtonDown"
+                                        MouseMove="AnnotationCanvas_MouseMove"
+                                        MouseLeftButtonUp="AnnotationCanvas_MouseLeftButtonUp">
+                                </Canvas>
+                            </Grid>
                         </Viewbox>
                     </ScrollViewer>
                     
