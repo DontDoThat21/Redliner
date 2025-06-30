@@ -12,6 +12,8 @@
     <Window.Resources>
         <converters:InvertedBooleanToVisibilityConverter x:Key="InvertedBooleanToVisibilityConverter"/>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter"/>
+        <converters:ShowPlaceholderConverter x:Key="ShowPlaceholderConverter"/>
+        <converters:ShowDocumentContentConverter x:Key="ShowDocumentContentConverter"/>
         
         <!-- Style for document tree items -->
         <Style x:Key="DocumentTreeItemStyle" TargetType="TreeViewItem">
@@ -155,10 +157,25 @@
                                   HorizontalScrollBarVisibility="Auto" 
                                   VerticalScrollBarVisibility="Auto"
                                   CanContentScroll="True"
-                                  PanningMode="Both"
-                                  Visibility="{Binding IsFileLoaded, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                  PanningMode="Both">
+                        <ScrollViewer.Visibility>
+                            <MultiBinding Converter="{StaticResource ShowDocumentContentConverter}">
+                                <Binding Path="IsDocumentLoading"/>
+                                <Binding Path="IsFileLoaded"/>
+                            </MultiBinding>
+                        </ScrollViewer.Visibility>
                         <Viewbox x:Name="DocumentViewbox" Stretch="Uniform">
-                            <ContentPresenter Content="{Binding DocumentContent}" />
+                            <Grid x:Name="DocumentContainer">
+                                <!-- Document base content -->
+                                <ContentPresenter x:Name="DocumentPresenter" Content="{Binding DocumentContent}" />
+                                <!-- Annotation overlay canvas -->
+                                <Canvas x:Name="AnnotationCanvas" 
+                                        Background="Transparent"
+                                        MouseLeftButtonDown="AnnotationCanvas_MouseLeftButtonDown"
+                                        MouseMove="AnnotationCanvas_MouseMove"
+                                        MouseLeftButtonUp="AnnotationCanvas_MouseLeftButtonUp">
+                                </Canvas>
+                            </Grid>
                         </Viewbox>
                     </ScrollViewer>
                     
@@ -174,8 +191,13 @@
                     </Grid>
                     
                     <!-- No document message -->
-                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
-                                Visibility="{Binding IsFileLoaded, Converter={StaticResource InvertedBooleanToVisibilityConverter}}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <StackPanel.Visibility>
+                            <MultiBinding Converter="{StaticResource ShowPlaceholderConverter}">
+                                <Binding Path="IsDocumentLoading"/>
+                                <Binding Path="IsFileLoaded"/>
+                            </MultiBinding>
+                        </StackPanel.Visibility>
                         <TextBlock Text="📄" FontSize="48" HorizontalAlignment="Center" Margin="0,0,0,10" Foreground="LightGray"/>
                         <TextBlock Text="Open a document to begin annotation"
                                    FontSize="16"
